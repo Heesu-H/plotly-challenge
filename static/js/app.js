@@ -14,9 +14,9 @@ function init () {
     // reading samples.json to extract data for bar graph
     d3.json('samples.json').then( (data) => {
 
-        var sample_values = unpack(data.samples, "sample_values");
-        var otu_ids = unpack(data.samples, "otu_ids");
-        var otu_labels = unpack(data.samples, "otu_labels");
+        var sampleValues = unpack(data.samples, "sample_values");
+        var otuIDs = unpack(data.samples, "otu_ids");
+        var otuLabels = unpack(data.samples, "otu_labels");
 
         var ids = data.metadata.map(row => row.id);
         var ethnicity = data.metadata.map(row => row.ethnicity);
@@ -28,17 +28,22 @@ function init () {
         //appending option tags for dropdown menu
         ids.forEach(id => { dropdownMenu.append("option").text(`${id}`) })
 
+        // BUBBLE GRAPH VALUES
+        var yBubble = data.samples[0]['sample_values']
+        var xBubble = data.samples[0]['otu_ids']
+        var labelsBubble = data.samples[0]['otu_labels']
+
         //BAR GRAPH
         // converting an integer to a string ("1000" for example) is still 
         // graphed like an int by plotly. need to attach letters before the number "OTU 1000"
-        ticks = otu_ids[0].map(x => {return `OTU ${x.toString()}`})
+        ticks = otuIDs[0].map(x => {return `OTU ${x.toString()}`})
         //bar graph using .sort( function() {}) to sort int values
-        values = sample_values[0].sort((a , b) => a-b)
+        values = sampleValues[0].sort((a , b) => a-b)
         //bar graph data array 
         var data = [{
             x: values,
             y: ticks,
-            text: otu_labels[0],
+            text: otuLabels[0],
             type: 'bar',
             orientation: 'h'}]
         //bar graph layout
@@ -53,18 +58,16 @@ function init () {
         
 
         //BUBBLE GRAPH
-        //genertive rgb values for bubble colors
-        var colorValues = otu_ids[0].map(otuID => {return `rgb(${Math.floor(Math.random()*255 + 1)},${Math.floor(Math.random()*255 + 1)},${Math.floor(Math.random()*255 + 1)})`})
         var data = [{
-            x:ticks,
-            y:values,
+            x:xBubble,
+            y:yBubble,
             mode: 'markers',
             marker: {
-                size: sample_values[0],
+                size: yBubble,
                 opacity: 0.6,
-                color: colorValues
+                color: xBubble
             },
-            text:otu_labels[0]
+            text:labelsBubble
         }];
 
         var layout = {
@@ -73,8 +76,9 @@ function init () {
             width:1500
         };
         //checking color list
-        console.log(colorValues)
+        //console.log(colorValues)
         Plotly.newPlot('bubble',data,layout);
+
         
 
         //GAUGE CHART
@@ -173,6 +177,14 @@ function updatePlotly() {
                     bbtype = bbtypes[i];
                     wfreq = wfreqs[i];
             }
+
+            //reassigning bubble graph values
+            switch(selectedValue) {
+                case `${id}`:
+                    yBubble = data.samples[i]['sample_values']
+                    xBubble = data.samples[i]['otu_ids']
+                    labelsBubble = data.samples[i]['otu_labels']
+            }
         })
 
         // restyling Bar graph
@@ -180,14 +192,15 @@ function updatePlotly() {
         Plotly.restyle('bar','y',[y])
         Plotly.restyle('bar','text',[text])
 
-        // restyling Bar graph
-        Plotly.restyle('bubble','x',[y])
-        Plotly.restyle('bubble','y',[x])
-        Plotly.restyle('bubble','text',[text])
+        // restyling Bubble graph
+        Plotly.restyle('bubble','x',[xBubble])
+        Plotly.restyle('bubble','y',[yBubble])
+        Plotly.restyle('bubble','text',[labelsBubble])
 
+        // restyling gauge
         Plotly.restyle('gauge', 'value', [wfreq])
 
-        // adding values to the demographic info table
+        // reassigning values to the demographic info table
         // creating dictionary 
         var demographicTableValues = {'id':iD,'ethnicity':ethnicity,'gender':gender,
         'location':loc, 'bbtype':bbtype, 'wfreq':wfreq}
