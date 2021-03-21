@@ -1,12 +1,13 @@
-//selecting dropdown menu
+//selecting necessary html elements 
 var dropdownMenu = d3.selectAll("#selDataset")
 var demoTableBody = d3.selectAll('#sample-metadata')
 var demoTable = d3.selectAll('.panel')
+var bubbleTable = d3.selectAll('#bubble')
 
 // Returns first ten values of a list at a specific key
 function unpack(table, key) { return table.map( data => (data[key]).slice(0,10)); }
 
-//creating initial graph
+//creating initial graphs
 function init () {
 
     // reading samples.json to extract data for bar graph
@@ -26,32 +27,57 @@ function init () {
         //appending option tags for dropdown menu
         ids.forEach(id => { dropdownMenu.append("option").text(`${id}`) })
 
-            // convering each value to a string. "1000" for example is still 
-            // treated like an int by plotly so need to make it "OTU 1000"
-            yticks = otu_ids[0].map(x => {return `OTU ${x.toString()}`})
-            //using .sort( function() {}) to sort int values
-            xvalues = sample_values[0].sort((a , b) => a-b)
-
-            var data = [{
-                x: xvalues,
-                y: yticks,
-                text: otu_labels[0],
-                type: 'bar',
-                orientation: 'h'}]
-
-            var layout = {
-                yaxis: { title: "OTU ID" },
-                xaxis: { title: "Sample Values" } };
-
-        Plotly.newPlot('bar', data, layout)   
+        //BAR GRAPH
+        // converting an integer to a string ("1000" for example) is still 
+        // graphed like an int by plotly. need to attach letters before the number "OTU 1000"
+        ticks = otu_ids[0].map(x => {return `OTU ${x.toString()}`})
+        //bar graph using .sort( function() {}) to sort int values
+        values = sample_values[0].sort((a , b) => a-b)
+        //bar graph data array 
+        var data = [{
+            x: values,
+            y: ticks,
+            text: otu_labels[0],
+            type: 'bar',
+            orientation: 'h'}]
+        //bar graph layout
+        var layout = {
+            yaxis: { title: "Operational Taxonomic Units ID" },
+            xaxis: { title: "Sample Values" } 
+        };
+        //plotly new bar graph      
+        Plotly.newPlot('bar', data, layout);   
         
 
-        //adding values to the demographic info table
+        //BUBBLE GRAPH
+        //genertive rgb values for bubble colors
+        var colorValues = otu_ids[0].map(otuID => {return `rgb(${Math.floor(Math.random()*255 + 1)},${Math.floor(Math.random()*255 + 1)},${Math.floor(Math.random()*255 + 1)})`})
+        var data = [{
+            x:ticks,
+            y:values,
+            mode: 'markers',
+            marker: {
+                size: sample_values[0],
+                opacity: 0.6,
+                color: colorValues
+            },
+            text:otu_labels[0]
+        }];
+
+        var layout = {
+            title: "Sample value vs Operational Taxonomic Units (OTU) ID",
+            height:600,
+            width:1500
+        };
+        //checking color list
+        console.log(colorValues)
+        Plotly.newPlot('bubble',data,layout);
+
+
+        //adding initial values to the demographic info table:
         //creating dictionary 
         var demographicTableValues = {'id':ids[0],'ethnicity':ethnicity[0],'gender':gender[0],
                                 'location':location[0], 'bbtype':bbtype[0], 'wfreq':wfreq[0]}
-        
-        
         //using object to create an array of arrays that contain key value pairs 
         Object.entries(demographicTableValues)
         //using forEach to iterate through each key value pair and create html elements
@@ -60,31 +86,33 @@ function init () {
                     demoTableBody.append('div')
                             .attr('class', 'panel-body')
                             .text(`${key}:${value}`)
-                })
+                  })
+    //end of json promise.then()
     });
-   
+//end of init()
 }
 
 //Call updatePlotly() when a change takes place to the DOM
 dropdownMenu.on("change", updatePlotly);
 
-//creating bar plot update function
+//creating update function for bar plot, demographic table and bubble graph
 function updatePlotly() {
 
     // reading samples.json to extract data for bar graph
     d3.json('samples.json').then( (data) => {
 
+        //isolating list of locations from json
         var locations = data.metadata.map(row => row.location);
-        var locationUpdated = locations.map( (location,i) => {
+        //replacing null values with string as code fails to run with null values 
+        var locationUpdated = locations.map( (location) => {
             if (location === null) {
                 return "undefined"
             } else {
                 return location
             }
         })
-
-
-         console.log(locationUpdated)
+        //checking if locationUpdated has replaced null values with string
+        console.log(locationUpdated)
 
 
         var sample_values = unpack(data.samples, "sample_values");
@@ -126,10 +154,15 @@ function updatePlotly() {
             }
         })
 
-        // restyling graph
+        // restyling Bar graph
         Plotly.restyle('bar','x',[x])
         Plotly.restyle('bar','y',[y])
         Plotly.restyle('bar','text',[text])
+
+        // restyling Bar graph
+        Plotly.restyle('bubble','x',[y])
+        Plotly.restyle('bubble','y',[x])
+        Plotly.restyle('bubble','text',[text])
 
         // adding values to the demographic info table
         // creating dictionary 
@@ -148,9 +181,9 @@ function updatePlotly() {
                             .text(`${key}:${value}`)
                 })
 
-
+    //end of json promise.then()
     });
-        
+//end of updatePlotly()
 }
 
 
