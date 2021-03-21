@@ -3,6 +3,7 @@ var dropdownMenu = d3.selectAll("#selDataset")
 var demoTableBody = d3.selectAll('#sample-metadata')
 var demoTable = d3.selectAll('.panel')
 var bubbleTable = d3.selectAll('#bubble')
+var gaugeChart = d3.selectAll('#gauge')
 
 // Returns first ten values of a list at a specific key
 function unpack(table, key) { return table.map( data => (data[key]).slice(0,10)); }
@@ -43,7 +44,9 @@ function init () {
         //bar graph layout
         var layout = {
             yaxis: { title: "Operational Taxonomic Units ID" },
-            xaxis: { title: "Sample Values" } 
+            xaxis: { title: "Sample Values" },
+            height: 500,
+            width: 500
         };
         //plotly new bar graph      
         Plotly.newPlot('bar', data, layout);   
@@ -72,6 +75,24 @@ function init () {
         //checking color list
         console.log(colorValues)
         Plotly.newPlot('bubble',data,layout);
+        
+
+        //GAUGE CHART
+        gaugeChart.html('<h3><b style="position: absolute;top: 30px;left:120px;width:500px;">Belly Button Washing Frequency</b></h3>')
+        var data = [
+            {
+              domain: { x: [0, 1], y: [0, 1] },
+              value: wfreq[0],
+              title: { text: "Washes per week" },
+              type: "indicator",
+              mode: "gauge+number",
+              delta: { reference: 400 },
+              gauge: { axis: { range: [null, 9] } }
+            }
+          ];
+          
+          var layout = { width: 600, height: 400 };
+          Plotly.newPlot('gauge', data, layout);
 
 
         //adding initial values to the demographic info table:
@@ -163,6 +184,8 @@ function updatePlotly() {
         Plotly.restyle('bubble','x',[y])
         Plotly.restyle('bubble','y',[x])
         Plotly.restyle('bubble','text',[text])
+
+        Plotly.restyle('gauge', 'value', [wfreq])
 
         // adding values to the demographic info table
         // creating dictionary 
