@@ -73,7 +73,9 @@ function init () {
         var layout = {
             title: "Sample value vs Operational Taxonomic Units (OTU) ID",
             height:600,
-            width:1500
+            width:1500,
+            xaxis:{title:"OTU ID"},
+            yaxis:{title:"Sample Value"}
         };
         //checking color list
         //console.log(colorValues)
@@ -91,7 +93,19 @@ function init () {
               type: "indicator",
               mode: "gauge+number",
               delta: { reference: 400 },
-              gauge: { axis: { range: [null, 9] } }
+              gauge: { 
+                axis: { range: [null, 9] },
+                bar: { color: "rgb(0,76,153)" },
+                steps: [
+                    { range: [0, 1], color: "rgb(204,255,204)" },
+                    { range: [1, 2], color: "rgb(153,255,153)" },
+                    { range: [2, 3], color: "rgb(102,255,102)" },
+                    { range: [3, 4], color: "rgb(20,255,20)" },
+                    { range: [4, 5], color: "rgb(0,220,0)" },
+                    { range: [5, 6], color: "rgb(0,204,0)" },
+                    { range: [6, 7], color: "rgb(0,153,0)" },
+                    { range: [7, 8], color: "rgb(0,120,0)" },
+                    { range: [8, 9], color: "rgb(0,102,51)" }]}
             }
           ];
           
