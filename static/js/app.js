@@ -83,7 +83,7 @@ function init () {
 
         
 
-        //GAUGE CHART
+        //GAUGE CHART BONUS EXERCISE
         gaugeChart.html('<h3><b style="position: absolute;top: 30px;left:120px;width:500px;">Belly Button Washing Frequency</b></h3>')
         var data = [
             {
